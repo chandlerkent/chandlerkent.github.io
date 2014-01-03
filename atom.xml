@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Chandler Kent]]></title>
+  <link href="http://www.chandlerkent.com/atom.xml" rel="self"/>
+  <link href="http://www.chandlerkent.com/"/>
+  <updated>2014-01-02T23:37:26-05:00</updated>
+  <id>http://www.chandlerkent.com/</id>
+  <author>
+    <name><![CDATA[Chandler Kent]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Building a Basic App With a Sidebar and Content View]]></title>
+    <link href="http://www.chandlerkent.com/2010/01/08/Building-a-Basic-App-With-Sidebar-and-Content-View.html"/>
+    <updated>2010-01-08T00:00:00-05:00</updated>
+    <id>http://www.chandlerkent.com/2010/01/08/Building-a-Basic-App-With-Sidebar-and-Content-View</id>
+    <content type="html"><![CDATA[<p>In the <a href="http://www.chandlerkent.com/2009/12/10/Building-a-Sidebar-With-CPOutlineView.html">last post</a> I showed you how to build a basic sidebar using <code>CPOutlineView</code> and all its data source methods. In this post I am going to continue that idea and show you how to update a content view based on the user&rsquo;s selection in the sidebar. You can see a <a href="http://www.chandlerkent.com/code/SidebarChangingContentView/">demo</a> of the final application to get the idea. All the source code created for this post can be found <a href="http://github.com/chandlerkent/sample-projects/tree/master/SidebarChangingContentView/">here</a>.</p>
+
+<!--more-->
+
+
+<p><em><strong>Quick Note:</strong> I am using <a href="http://www.280atlas.com/">Atlas</a> in this post to layout my basic view and make some connections. If you are not part of the Atlas beta, or do not yet have Atlas, the following ideas should still extend to your application.</em></p>
+
+<h2>Setup the Interface</h2>
+
+<p>In Atlas, create a new Cib-based project. Then open Resources > MainMenu.cib to begin putting together the view. We are going to create a basic application with a sidebar on the left and a content view on the right. I like to use a Vertical Split View for this. Go ahead and drag a Vertical Split View into your window. Using the Size tab, make the Split View take up the entire window and resize with the window (selecting all the resizing arrows should do the trick). Also, in the &ldquo;Split View Size&rdquo; section, select the resizing arrow for the right view. The right view will be our content view, and this arrow tells the right view to resize horizontally as the window resizes. This is the behavior we want.</p>
+
+<p>Next, we want to create our outline view in the left view of the Split View. Unfortunately, <code>CPOutlineView</code> isn&rsquo;t supported by Atlas yet, so we need to do this programmatically. However, we can save ourselves some work by creating the <code>CPScrollView</code> in Atlas that the Outline View will need. Drag out a Scroll View and put it in the left view of the Split View. Again using the Size tab, make the Scroll View take up the entire left view and resize as it resizes (select all the resizing arrows). Also, in the Attributes tab with the Scroll View selected, uncheck &ldquo;Shows Horizontal Scroller&rdquo; and check &ldquo;Autohides Scrollers&rdquo;. These do exactly what they sound like they do.</p>
+
+<p>Click &ldquo;Test&rdquo; in the toolbar to test your interface. Make sure to resize both the window and the split view to see if your resizing flags are set up correctly.</p>
+
+<h2>Setup the Sidebar</h2>
+
+<p>I showed you how to build a sidebar in my <a href="http://www.chandlerkent.com/2009/12/10/Building-a-Sidebar-With-CPOutlineView.html">previos post</a>. I&rsquo;m not going to repeat that here. However, I want to highlight some different techniques that I am using.</p>
+
+<p>Last time I just used <code>CPString</code>s as my items in the sidebar. However, you can use whatever object you like. For this demo, I created a <code>SidebarColorItem</code> object to wrap all the details of my sidebar items&mdash;basically just a name, which the Outline View will display, and a color that will be the background color of the content view when the item is selected. The only thing you need to change from the <a href="http://www.chandlerkent.com/2009/12/10/Building-a-Sidebar-With-CPOutlineView.html">previous post</a>&rsquo;s code is the</p>
+
+<pre><code>- (id)outlineView:(CPOutlineView)outlineView objectValueForTableColumn:(CPTableColumn)tableColumn byItem:(id)item
+</code></pre>
+
+<p>of your data source. Instead of just returning <code>item</code>, you will want to return <code>[item name]</code> (the string that will be displayed in the outline view).</p>
+
+<p>Also, I wanted my Outline View to show all of its top-level items as expanded when it is first loaded. I used the following method for that:</p>
+
+<pre><code>- (void)expandAllItems
+{
+    var allItems = [items allKeys];
+    for (var i = 0; i &lt; [allItems count]; i++)
+    {
+        [outlineView expandItem:[allItems objectAtIndex:i]];
+    }
+}
+</code></pre>
+
+<p>Finally, since I am using Atlas, I want Atlas to instantiate my <code>SidebarController</code> for me. To do that, go back to MainMenu.cib, drag a &ldquo;Custom Object&rdquo; into the object section (the area along the bottom of the window). With the new object selected, change its class in the Class tab to <code>SidebarController</code>. Also, connect the outlet <code>sidebarScrollView</code> of the SidebarController to the Scroll View in the left view.</p>
+
+<p>This won&rsquo;t work on its own because our project doesn&rsquo;t know where that file is coming from. So in the <code>AppController</code>, <code>@import</code> the class file.</p>
+
+<p>I kind of breezed over most of the implementation details of the <code>SidebarController</code>, so you may want to take a look at the full <a href="http://github.com/chandlerkent/sample-projects/blob/master/SidebarChangingContentView/SidebarController.j">SidebarController</a> and <a href="http://github.com/chandlerkent/sample-projects/blob/master/SidebarChangingContentView/SidebarColorItem.j">SidebarColorItem</a> source.</p>
+
+<h2>Create the Content View Controller</h2>
+
+<p>Now it is time to create the <code>ContentViewController</code>. For this demo, all it will do is change its background color based on the selection in the sidebar. You can probably imagine a more complex application that will swap out the content view instead. But this should help you get the idea.</p>
+
+<p>The <code>ContentViewController</code> will have an outlet which references the right view of the Split View. This is the view whose background color will be changed.</p>
+
+<p>In the <code>- (void)awakeFromCib</code> method (which will be called when our object is instantiated from MainMenu.cib), all we need to do is register our object to receive notifications when the Outline View&rsquo;s selection changed, specifically we want to know about the <code>CPOutlineViewSelectionDidChangeNotification</code> notification. This is done like:</p>
+
+<pre><code>[[CPNotificationCenter defaultCenter]
+        addObserver:self
+        selector:@selector(outlineViewSelectionDidChange:)
+        name:CPOutlineViewSelectionDidChangeNotification
+        object:nil];
+</code></pre>
+
+<p>If you pass it a non-<code>nil</code> object, your selector will only be called when the notification is posted from that specific object. Also, you can specify whatever selector you want, but in this case I called it <code>- (void)outlineViewSelectionDidChange:</code>. This method will be called with the <code>CPNotification</code> object that was posted by the <code>CPNotificationCenter</code>. The implementation of this method may look like:</p>
+
+<pre><code>- (void)outlineViewSelectionDidChange:(CPNotification)notification
+{
+    var outlineView = [notification object];
+    var selectedRow = [[outlineView selectedRowIndexes] firstIndex];
+    var item = [outlineView itemAtRow:selectedRow];
+
+    if ([item color])
+    {
+        [contentView setBackgroundColor:[item color]];
+    }
+    else
+    {
+        [contentView setBackgroundColor:[CPColor clearColor]];
+    }
+}
+</code></pre>
+
+<p>In the method you will notice that you can get the outline view through the method <code>[notification object]</code>. Then, you get the selected row of the outline view and finally the selected item. In your application you can do what you like with this item; I just change the background color of the content view.</p>
+
+<p>Now go back in MainMenu.cib, drag out a new &ldquo;Custom Object&rdquo; and set its class to be <code>ContentViewController</code>. Now connect the <code>contentView</code> outlet to the right view of the Split View. Also, don&rsquo;t forget to <code>@import</code> the class file in your <code>AppController</code>.</p>
+
+<h2>Putting it All Together</h2>
+
+<p>As a quick recap, you have:</p>
+
+<ul>
+<li>Used Atlas to setup a simple interface with a sidebar and a content view, wrapped with a split view</li>
+<li>Created a <code>SidebarController</code> that is in charge of creating and managing the items in an outline view</li>
+<li>Also created a small <code>SidebarColorItem</code> for the items in the sidebar</li>
+<li>Finally, created a <code>ContentViewController</code> that responds to the <code>CPOutlineViewSelectionDidChangeNotification</code> sent by the outline view</li>
+</ul>
+
+
+<p>Now when you load the final application you should be able to select items from the sidebar and see the background color of the content view change. <a href="http://www.chandlerkent.com/code/SidebarChangingContentView/">Here</a> is the demo of my finished application.</p>
+
+<p>As you can see, it is relatively easy to create a simple application with a sidebar and a content view. While this example is fairly contrived, I&rsquo;m sure you can envision how you can extend it for your own applications.</p>
+
+<p>As always, the full source code for this application is available at <a href="http://www.github.com/chandlerkent/sample-projects/">my GitHub account</a>: <a href="http://github.com/chandlerkent/sample-projects/tree/master/SidebarChangingContentView/">here</a>. If you have any questions, please post them in the comments section.</p>
+
+<p>Stay tuned for my next post on how to style your Outline View to be a little less bland!</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Moving the Blog to Jekyll]]></title>
+    <link href="http://www.chandlerkent.com/2009/12/23/Moving-the-Blog-To-Jekyll.html"/>
+    <updated>2009-12-23T00:00:00-05:00</updated>
+    <id>http://www.chandlerkent.com/2009/12/23/Moving-the-Blog-To-Jekyll</id>
+    <content type="html"><![CDATA[<p>I started chandlerkent.com about four years ago as a way to learn how to create a website, including a backend powered by PHP and MySQL. At that time I created really basic blog software. This had many obvious problems, mainly it became impossible for me to maintain and add the features I needed. So the blog became stagnant. But from the experience I gained while building the site, I was able to create and deploy <a href="http://www.iphlickr.com/">iPhlickr</a>, which was also backed by PHP and MySQL. This site has basically been used for iPhlickr since then. About a year ago I deleted the blog altogether as the information was simply out-of-date and the site was an eyesore. I didn&rsquo;t want to associate myself with that work.</p>
+
+<!--more-->
+
+
+<p>This year I decided I wanted to start blogging again. But I wanted to do it in such a way that would be more sustainable for me in the future. This meant it would need to be drop-dead simple for me to update, maintain, and add features. So I started looking into my options. I looked at <a href="http://wordpress.org/">WordPress</a>, but it seemed like a lot of overhead. I&rsquo;ve also heard that WordPress had some <a href="http://daringfireball.net/2009/09/regarding_wordpress_and_security">security issues</a> in the past, as well as being a notorious <a href="http://www.codinghorror.com/blog/archives/001105.html">CPU hog</a>. I wanted a little more control over my content that WordPress also didn&rsquo;t offer. So I kept looking. Google&rsquo;s <a href="http://www.blogger.com/">Blogger</a> seemed to offer more benefits. It was very simple to set-up, offered an API that allowed me to use other tools to blog instead of the crappy web interface, and allowed me to host it on my own domain.</p>
+
+<p>I decided to give Blogger a try, and last month I created the first post on the new blog. But I was immediately underwhelmed with what I could do. I wanted more control over my users&#8217; experience than what Blogger offered, and the templates provided were downright ugly. So I started to look for another solution. Enter <a href="http://github.com/mojombo/jekyll">Jekyll</a>.</p>
+
+<p>Jekyll gives me a lot of the benefits I was looking for. It is drop-dead simple to use. I can write using <a href="http://daringfireball.net/projects/markdown/">Markdown</a>, <a href="http://en.wikipedia.org/wiki/Textile_(markup_language)">Textile</a>, or just HTML if I wanted to. I have complete control over the content, including layout and final HTML markup that will be served to the users. I can easily use source control for my writing like I do for code. And since it just generates static HTML pages, deployment is simple and flexible, and the final product is as fast as the server can deliver simple HTML files. Perfect.</p>
+
+<p>I spent today setting up and configuring Jekyll. Following the <a href="http://wiki.github.com/mojombo/jekyll">Jekyll-wiki</a> was simple and the documentation is detailed. It took me less than an hour to get a simple blog setup. Next, I threw on some simple CSS (powered by <a href="http://sass-lang.com/">Sass</a>&mdash;I never want to write straight CSS again!) for style and layout, added a few features like an <a href="http://www.chandlerkent.com/archive.html">Archive</a> page and a <a href="http://www.chandlerkent.com/rss.xml">RSS</a> feed, and uploaded it to my GoDaddy hosting. It was really a joy.</p>
+
+<p>After spending the day with Jekyll, I&rsquo;m fairly confident I will be using it moving forward. I was surprised with its simplicity and flexibility which work together to allow for a lot of power and control. While I&rsquo;m not sure when I will next get to work on the site, I do have many features in mind, such as:</p>
+
+<ul>
+<li>comments (possibly through <a href="http://disqus.com/">Disqus</a>)</li>
+<li>better archives</li>
+<li>tags</li>
+<li>related posts</li>
+<li>better front-page</li>
+<li>better layout</li>
+<li>easier deployment (eventually through a git push)</li>
+<li>ads?</li>
+<li>and more&hellip;</li>
+</ul>
+
+
+<p>If you&rsquo;re interested, the source code for this site is up on <a href="http://www.github.com/chandlerkent/chandlerkent.com">GitHub</a>. I look forward to any feedback you have as well as suggestions in ways I can improve the experience of this site.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Building a Sidebar With CPOutlineView]]></title>
+    <link href="http://www.chandlerkent.com/2009/12/10/Building-a-Sidebar-With-CPOutlineView.html"/>
+    <updated>2009-12-10T00:00:00-05:00</updated>
+    <id>http://www.chandlerkent.com/2009/12/10/Building-a-Sidebar-With-CPOutlineView</id>
+    <content type="html"><![CDATA[<p>This past week I was tasked with converting our <code>CPCollectionView</code>-backed sidebar to one using a <code>CPOutlineView</code>. The reason for doing this was threefold. First, a collection view could not support all of the project&rsquo;s requirements going forward (at least not easily). Most notably, we wanted to support quick and easy navigation to common items like projects, glossaries, and some community links. Second, an outline view is more Mac-like in that most desktop Mac applications with a sidebar have some sort of outline view. This would move us closer to a Mac desktop experience on the web and lower the learning curve for new users. Finally, we just could.</p>
+
+<!--more-->
+
+
+<p>Since the release of <a href="http://280atlas.com">Atlas</a>, the team has been trying to use Cibs to build our interface as much as possible. But <code>CPTableView</code> and its brethren <code>CPOutlineView</code> are not yet supported in Atlas. So that means I had to do this in straight code. This isn&rsquo;t a big deal (most of our interface is still built programmatically at this time), but it just means I have to be extra careful with configuring the view.</p>
+
+<h2>Setting Up the View</h2>
+
+<p>Setting up a <code>CPOutlineView</code> is not much different from any other <code>CPView</code> with two exceptions. The first is since <code>CPOutlineView</code> inherits from <code>CPTableView</code>, the column of data is actually a <code>CPTableColumn</code>. So I had to create a <code>CPTableColumn</code> and add it to the <code>CPOutlineView</code>, just like in a <code>CPTableView</code>. Simple enough. The second pitfall is again related to <code>CPOutlineView</code> inheriting from <code>CPTableView</code>. In order to correctly support scrolling, the outline view must be the documentView of a <code>CPScrollView</code>.</p>
+
+<p>To get the scroll view and outline view to actually look like an outline view, some additional configuration must be done. First, make sure to autohide the scroll view&rsquo;s scrollers. Again, an outline view is just a very specific table view, so it has a header view and a corner view. But in a sidebar, those views don&rsquo;t really make since, so I just set them both to nil. You probably also want to set the background color of the scroll view to look like a sidebar. I used <code>e0ecfa</code>, but you may choose any color you wish.</p>
+
+<h2>DataSource</h2>
+
+<p>If you are coding along, and you&rsquo;re like me and like to refresh your project to see the effects of your changes, you are probably disappointed at this point. All you should see is a nice blue rectangle. That is because we haven&rsquo;t told the outline view what to display yet. This is what the dataSource is for.</p>
+
+<p>After setting the dataSource on the outline view to some object, we must implement the correct dataSource methods. There are four required methods:</p>
+
+<pre><code>- (id)outlineView:child:ofItem:
+- (BOOL)outlineView:isItemExpandable:
+- (int)outlineView:numberOfChildrenOfItem:
+- (id)outlineView:objectValueForTableColumn:byItem:
+</code></pre>
+
+<p>Most of these methods are pretty self explanatory and I&rsquo;m not going to go into much detail about them here (you can see <a href="http://developer.apple.com/mac/library/documentation/cocoa/Reference/ApplicationKit/Protocols/NSOutlineViewDataSource_Protocol/Reference/Reference.html#//apple_ref/doc/uid/20000457"><code>NSOutlineView</code>&rsquo;s documentation</a> for more information) . I just want to note a few of the hangups that I had. First, these methods will be called with a <code>nil</code> item for the root object in the outline view. Second, if <code>- (id)outlineView:objectValueForTableColumn:byItem:</code> doesn&rsquo;t get called, you haven&rsquo;t added your table column to the outline view. Finally, if you mysteriously can&rsquo;t get anything beyond the first level of data to display (<a href="http://groups.google.com/group/objectivej/browse_thread/thread/64b3209423502341">like me</a>), you haven&rsquo;t actually told the outline view which table column is the outline view&rsquo;s table column. So you need to use <code>- (void)setOutlineTableColumn:</code>, passing in your table column.</p>
+
+<p>That&rsquo;s basically it. The final piece is to actually back your dataSource with some object or objects. Since I only need two levels of data, I am using a <code>CPDictionary</code> where the keys are the top level and the values are arrays of data for the second level.</p>
+
+<p>You can see the code for my finished AppController at <a href="http://gist.github.com/251323">http://gist.github.com/251323</a>. I included a bunch of debug statements in the dataSource methods to help understand what exactly is going on. You can see a running version of this project at <a href="http://www.chandlerkent.com/code/OutlineView/">http://www.chandlerkent.com/code/OutlineView/</a>.</p>
+
+<h2>What&rsquo;s Next</h2>
+
+<p>My next step is to implement <code>CPOutlineView</code>&rsquo;s delegate methods to be able to tell when the selection changes and which item is selected. Also, I want to have all my items expanded at startup like in Atlas, but just haven&rsquo;t gotten around to figuring that out yet.</p>
+
+<p>I hope this post helps you if you are struggling to get a <code>CPOutlineView</code> in your interface or if you wanted to create a somewhat Mac-like sidebar. Leave a comment below if you have any questions, comments, or suggestions.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[First Post]]></title>
+    <link href="http://www.chandlerkent.com/2009/11/24/First-Post.html"/>
+    <updated>2009-11-24T00:00:00-05:00</updated>
+    <id>http://www.chandlerkent.com/2009/11/24/First-Post</id>
+    <content type="html"><![CDATA[<p>I finally got the blog setup again. I am still using Blogger because I don&rsquo;t feel like fussing with installing my own solution. We&rsquo;ll see how far this takes me.</p>
+
+<p>I have a few things I want to write up in the next few days, so stay tuned!</p>
+
+<p>Also, I can&rsquo;t seem to find a good Blogger template, so if anybody has any suggestions, let me know.</p>
+]]></content>
+  </entry>
+  
+</feed>

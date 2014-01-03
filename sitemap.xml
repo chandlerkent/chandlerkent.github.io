@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
+    <url>
+        <loc>http://www.chandlerkent.com/2009/11/24/First-Post.html</loc>
+        <lastmod>2014-01-02T23:08:43-05:00</lastmod>
+    </url>
+    <url>
+        <loc>
+            http://www.chandlerkent.com/2009/12/10/Building-a-Sidebar-With-CPOutlineView.html
+        </loc>
+        <lastmod>2014-01-02T23:37:18-05:00</lastmod>
+    </url>
+    <url>
+        <loc>http://www.chandlerkent.com/2009/12/23/Moving-the-Blog-To-Jekyll.html</loc>
+        <lastmod>2014-01-02T23:37:12-05:00</lastmod>
+    </url>
+    <url>
+        <loc>
+            http://www.chandlerkent.com/2010/01/08/Building-a-Basic-App-With-Sidebar-and-Content-View.html
+        </loc>
+        <lastmod>2014-01-02T23:36:32-05:00</lastmod>
+    </url>
+    <url>
+        <loc>http://www.chandlerkent.com/blog/archives/</loc>
+        <lastmod>2014-01-02T23:37:18-05:00</lastmod>
+    </url>
+    <url>
+        <loc>http://www.chandlerkent.com/</loc>
+        <lastmod>2014-01-02T23:37:18-05:00</lastmod>
+    </url>
+    <url>
+        <loc>http://www.chandlerkent.com/robots.txt</loc>
+        <lastmod>2014-01-02T22:57:08-05:00</lastmod>
+    </url>
+</urlset>
